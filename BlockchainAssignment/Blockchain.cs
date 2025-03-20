@@ -8,7 +8,7 @@ namespace BlockchainAssignment
 {
     class Blockchain
     {
-        /* Blockchain Properties */
+       
         List<Block> Blocks; // list of block in chain
 
         /* Blockchain Constructor - Initialises a new blockchain with a single genesis block */
@@ -18,6 +18,8 @@ namespace BlockchainAssignment
                 new Block()
             };
         }
+
+
 
         /* Helper function to get a block at a user specified index */
         public String getBlockAsString(int index)
