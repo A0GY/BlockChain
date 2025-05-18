@@ -38,6 +38,14 @@
             this.PK = new System.Windows.Forms.Label();
             this.PrK = new System.Windows.Forms.Label();
             this.CLEAR = new System.Windows.Forms.Button();
+            this.amount = new System.Windows.Forms.TextBox();
+            this.fee = new System.Windows.Forms.TextBox();
+            this.reciever = new System.Windows.Forms.TextBox();
+            this.CreateTransaction = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.newBlock = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // richTextBox1
@@ -131,12 +139,92 @@
             this.CLEAR.Text = "CLEAR";
             this.CLEAR.UseVisualStyleBackColor = false;
             // 
+            // amount
+            // 
+            this.amount.Location = new System.Drawing.Point(270, 402);
+            this.amount.Name = "amount";
+            this.amount.Size = new System.Drawing.Size(100, 20);
+            this.amount.TabIndex = 10;
+            this.amount.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
+            // 
+            // fee
+            // 
+            this.fee.Location = new System.Drawing.Point(270, 423);
+            this.fee.Name = "fee";
+            this.fee.Size = new System.Drawing.Size(100, 20);
+            this.fee.TabIndex = 11;
+            // 
+            // reciever
+            // 
+            this.reciever.Location = new System.Drawing.Point(196, 449);
+            this.reciever.Name = "reciever";
+            this.reciever.Size = new System.Drawing.Size(174, 20);
+            this.reciever.TabIndex = 12;
+            // 
+            // CreateTransaction
+            // 
+            this.CreateTransaction.Location = new System.Drawing.Point(395, 437);
+            this.CreateTransaction.Name = "CreateTransaction";
+            this.CreateTransaction.Size = new System.Drawing.Size(113, 23);
+            this.CreateTransaction.TabIndex = 13;
+            this.CreateTransaction.Text = "Make transaction";
+            this.CreateTransaction.UseVisualStyleBackColor = true;
+            this.CreateTransaction.Click += new System.EventHandler(this.CreateTransaction_Click);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(203, 405);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(61, 13);
+            this.label1.TabIndex = 14;
+            this.label1.Text = "Set amount";
+            this.label1.Click += new System.EventHandler(this.label1_Click);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(203, 426);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(41, 13);
+            this.label2.TabIndex = 15;
+            this.label2.Text = "Set fee";
+            this.label2.Click += new System.EventHandler(this.label2_Click);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(140, 452);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(50, 13);
+            this.label3.TabIndex = 16;
+            this.label3.Text = "Send to :";
+            this.label3.Click += new System.EventHandler(this.label3_Click);
+            // 
+            // newBlock
+            // 
+            this.newBlock.Location = new System.Drawing.Point(10, 437);
+            this.newBlock.Name = "newBlock";
+            this.newBlock.Size = new System.Drawing.Size(106, 23);
+            this.newBlock.TabIndex = 17;
+            this.newBlock.Text = "Add new block";
+            this.newBlock.UseVisualStyleBackColor = true;
+            this.newBlock.Click += new System.EventHandler(this.newBlock_Click);
+            // 
             // BlockchainApp
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.ClientSize = new System.Drawing.Size(681, 481);
+            this.Controls.Add(this.newBlock);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.CreateTransaction);
+            this.Controls.Add(this.reciever);
+            this.Controls.Add(this.fee);
+            this.Controls.Add(this.amount);
             this.Controls.Add(this.CLEAR);
             this.Controls.Add(this.PrK);
             this.Controls.Add(this.PK);
@@ -168,6 +256,14 @@
         private System.Windows.Forms.Label PK;
         private System.Windows.Forms.Label PrK;
         private System.Windows.Forms.Button CLEAR;
+        private System.Windows.Forms.TextBox amount;
+        private System.Windows.Forms.TextBox fee;
+        private System.Windows.Forms.TextBox reciever;
+        private System.Windows.Forms.Button CreateTransaction;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Button newBlock;
     }
 }
 
