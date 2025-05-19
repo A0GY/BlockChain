@@ -46,6 +46,14 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.newBlock = new System.Windows.Forms.Button();
+            this.validateChain = new System.Windows.Forms.Button();
+            this.checkBalance = new System.Windows.Forms.Button();
+            this.miningPreferenceCombo = new System.Windows.Forms.ComboBox();
+            this.miningPrefLabel = new System.Windows.Forms.Label();
+            this.targetBlockTimeLabel = new System.Windows.Forms.Label();
+            this.targetBlockTime = new System.Windows.Forms.TextBox();
+            this.currentDifficultyLabel = new System.Windows.Forms.Label();
+            this.showDifficultyButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // richTextBox1
@@ -211,12 +219,93 @@
             this.newBlock.UseVisualStyleBackColor = true;
             this.newBlock.Click += new System.EventHandler(this.newBlock_Click);
             // 
+            // validateChain
+            // 
+            this.validateChain.Location = new System.Drawing.Point(10, 476);
+            this.validateChain.Name = "validateChain";
+            this.validateChain.Size = new System.Drawing.Size(106, 23);
+            this.validateChain.TabIndex = 18;
+            this.validateChain.Text = "Validate Chain";
+            this.validateChain.UseVisualStyleBackColor = true;
+            this.validateChain.Click += new System.EventHandler(this.Validate_Click);
+            // 
+            // checkBalance
+            // 
+            this.checkBalance.Location = new System.Drawing.Point(122, 476);
+            this.checkBalance.Name = "checkBalance";
+            this.checkBalance.Size = new System.Drawing.Size(106, 23);
+            this.checkBalance.TabIndex = 19;
+            this.checkBalance.Text = "Check Balance";
+            this.checkBalance.UseVisualStyleBackColor = true;
+            this.checkBalance.Click += new System.EventHandler(this.CheckBalance_Click);
+            // 
+            // miningPreferenceCombo
+            // 
+            this.miningPreferenceCombo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.miningPreferenceCombo.FormattingEnabled = true;
+            this.miningPreferenceCombo.Location = new System.Drawing.Point(394, 478);
+            this.miningPreferenceCombo.Name = "miningPreferenceCombo";
+            this.miningPreferenceCombo.Size = new System.Drawing.Size(174, 21);
+            this.miningPreferenceCombo.TabIndex = 20;
+            // 
+            // miningPrefLabel
+            // 
+            this.miningPrefLabel.AutoSize = true;
+            this.miningPrefLabel.Location = new System.Drawing.Point(295, 481);
+            this.miningPrefLabel.Name = "miningPrefLabel";
+            this.miningPrefLabel.Size = new System.Drawing.Size(93, 13);
+            this.miningPrefLabel.TabIndex = 21;
+            this.miningPrefLabel.Text = "Mining Preference:";
+            // 
+            // targetBlockTimeLabel
+            // 
+            this.targetBlockTimeLabel.AutoSize = true;
+            this.targetBlockTimeLabel.Location = new System.Drawing.Point(10, 507);
+            this.targetBlockTimeLabel.Name = "targetBlockTimeLabel";
+            this.targetBlockTimeLabel.Size = new System.Drawing.Size(117, 13);
+            this.targetBlockTimeLabel.TabIndex = 22;
+            this.targetBlockTimeLabel.Text = "Target Block Time (s):";
+            // 
+            // targetBlockTime
+            // 
+            this.targetBlockTime.Location = new System.Drawing.Point(133, 505);
+            this.targetBlockTime.Name = "targetBlockTime";
+            this.targetBlockTime.Size = new System.Drawing.Size(47, 20);
+            this.targetBlockTime.TabIndex = 23;
+            // 
+            // currentDifficultyLabel
+            // 
+            this.currentDifficultyLabel.AutoSize = true;
+            this.currentDifficultyLabel.Location = new System.Drawing.Point(189, 507);
+            this.currentDifficultyLabel.Name = "currentDifficultyLabel";
+            this.currentDifficultyLabel.Size = new System.Drawing.Size(87, 13);
+            this.currentDifficultyLabel.TabIndex = 24;
+            this.currentDifficultyLabel.Text = "Current Difficulty:";
+            // 
+            // showDifficultyButton
+            // 
+            this.showDifficultyButton.Location = new System.Drawing.Point(394, 505);
+            this.showDifficultyButton.Name = "showDifficultyButton";
+            this.showDifficultyButton.Size = new System.Drawing.Size(114, 23);
+            this.showDifficultyButton.TabIndex = 25;
+            this.showDifficultyButton.Text = "Show Difficulty Info";
+            this.showDifficultyButton.UseVisualStyleBackColor = true;
+            this.showDifficultyButton.Click += new System.EventHandler(this.ShowDifficulty_Click);
+            // 
             // BlockchainApp
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.ClientSize = new System.Drawing.Size(681, 481);
+            this.ClientSize = new System.Drawing.Size(681, 539);
+            this.Controls.Add(this.showDifficultyButton);
+            this.Controls.Add(this.currentDifficultyLabel);
+            this.Controls.Add(this.targetBlockTime);
+            this.Controls.Add(this.targetBlockTimeLabel);
+            this.Controls.Add(this.miningPrefLabel);
+            this.Controls.Add(this.miningPreferenceCombo);
+            this.Controls.Add(this.checkBalance);
+            this.Controls.Add(this.validateChain);
             this.Controls.Add(this.newBlock);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
@@ -264,6 +353,14 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Button newBlock;
+        private System.Windows.Forms.Button validateChain;
+        private System.Windows.Forms.Button checkBalance;
+        private System.Windows.Forms.ComboBox miningPreferenceCombo;
+        private System.Windows.Forms.Label miningPrefLabel;
+        private System.Windows.Forms.Label targetBlockTimeLabel;
+        private System.Windows.Forms.TextBox targetBlockTime;
+        private System.Windows.Forms.Label currentDifficultyLabel;
+        private System.Windows.Forms.Button showDifficultyButton;
     }
 }
 

@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Diagnostics; // For Stopwatch
+using System.Collections.Concurrent; // For thread-safe collections
 
 namespace BlockchainAssignment
 {
@@ -15,10 +18,10 @@ namespace BlockchainAssignment
     class Block
     {
         // --- Block Metadata ---
-        private DateTime timestamp;             // Time when this block was created
-        private int index,                      // Position of the block in the chain
-                    difficulty = 4;             // Number of leading zeros required in a valid hash
-
+        public DateTime timestamp;             // Time when this block was created - made public for dynamic difficulty
+        private int index;                      // Position of the block in the chain
+        public double difficulty;              // Modified for Task 2 - now a double for finer adjustments
+                    
         // --- PoW & Chaining ---
         public long nonce;                      // Nonce value adjusted during mining
         public String prevHash,                 // Hash of the previous block
@@ -32,6 +35,17 @@ namespace BlockchainAssignment
         public String minerAddress;             // Wallet address to receive mining reward
         public double reward;                   // Fixed reward + accumulated fees
 
+        // Mining time info
+        public TimeSpan miningTime;             // Added for Task 2 - time taken to mine the block
+
+        // Parallel Mining Performance Data
+        public int ThreadCount { get; private set; } // Number of threads used for mining
+        public long HashesComputed { get; private set; } // Total number of hashes computed
+        public double HashRate { get; private set; } // Hashes per second
+
+        // Default max threads to use (0 = all available)
+        private static int maxThreads = 0;
+
         /* -----------------------------------------------
          * Genesis Block Constructor
          * Creates the very first block with no transactions.
@@ -39,11 +53,12 @@ namespace BlockchainAssignment
          * --------------------------------------------- */
         public Block()
         {
-            this.timestamp = DateTime.Now;          // creation time
+            this.timestamp = DateTime.Now;      // creation time
             this.index = 0;                     // genesis index
+            this.difficulty = 4.0;              // Initial difficulty
             this.transactionList = new List<Transaction>();// no txs yet
-            this.prevHash = String.Empty;          // no parent block
-            this.hash = Mine();                // perform PoW for genesis
+            this.prevHash = String.Empty;       // no parent block
+            this.hash = Mine();                 // perform PoW for genesis
         }
 
         /* -----------------------------------------------
@@ -56,23 +71,30 @@ namespace BlockchainAssignment
          * @param transactions List of pending transactions
          * @param minerAddress Address to credit with reward
          * --------------------------------------------- */
-        public Block(Block lastBlock, List<Transaction> transactions, String minerAddress)
+        public Block(Block lastBlock, List<Transaction> transactions, String minerAddress, double newDifficulty)
         {
-            this.timestamp = DateTime.Now;
+            // Set initial timestamp for mining time calculation
+            DateTime startTime = DateTime.Now;
+            
+            this.timestamp = startTime;
             this.index = lastBlock.index + 1;    // next position
-            this.prevHash = lastBlock.hash;         // link to parent
-            this.minerAddress = minerAddress;           // who gets the coinbase
-            this.reward = 1.0;                    // fixed block reward
+            this.prevHash = lastBlock.hash;      // link to parent
+            this.minerAddress = minerAddress;    // who gets the coinbase
+            this.reward = 1.0;                   // fixed block reward
+            this.difficulty = newDifficulty;     // Dynamic difficulty 
 
-            // 1) create and add the reward transaction (includes all tx fees)
+            // 1) create and add the reward transaction 
             transactions.Add(createRewardTransaction(transactions));
 
             // 2) set our transactions and compute the Merkle root
             this.transactionList = new List<Transaction>(transactions);
             this.merkleRoot = MerkleRoot(transactionList);
 
-            // 3) perform proof-of-work to find a valid hash
+            // 3) perform proof of work to find a valid hash
             this.hash = Mine();
+            
+            // Calculate & store mining time
+            this.miningTime = DateTime.Now - startTime;
         }
 
         /* -----------------------------------------------
@@ -80,15 +102,16 @@ namespace BlockchainAssignment
          * incorporating timestamp, index, prevHash,
          * nonce, and merkleRoot.
          * --------------------------------------------- */
-        public String CreateHash()
+        public String CreateHash(long nonceValue)
         {
             SHA256 hasher = SHA256Managed.Create();
             // Concatenate all fields that define this block
             String input = timestamp.ToString()
                          + index
                          + prevHash
-                         + nonce
-                         + merkleRoot;
+                         + nonceValue       // Use provided nonce instead of  variable
+                         + merkleRoot
+                         + difficulty.ToString("F1");
             Byte[] hashBytes = hasher.ComputeHash(Encoding.UTF8.GetBytes(input));
 
             // Convert to hexadecimal string
@@ -98,23 +121,202 @@ namespace BlockchainAssignment
             return sb.ToString();
         }
 
+        // Wrapper for backward compatibility
+        public String CreateHash()
+        {
+            return CreateHash(nonce);
+        }
+
         /* -----------------------------------------------
-         * Proof-of-Work: repeatedly increment the nonce
-         * and re-hash until the resulting hash has
-         * 'difficulty' leading zeros.
+         * Check if a hash meets the difficulty requirement
+         * --------------------------------------------- */
+        private bool IsValidHash(string hash)
+        {
+            // Get whole part of difficulty (full zeros)
+            int wholeDigits = (int)Math.Floor(difficulty);
+            String fullZeros = new string('0', wholeDigits);
+            
+            // Get fractional part to determine partial matching
+            double fraction = difficulty - wholeDigits;
+            int partialConstraint = (int)(16 * fraction);
+            
+            // Check if hash starts with full zeros
+            if (hash.StartsWith(fullZeros))
+            {
+                if (wholeDigits == difficulty || partialConstraint == 0)
+                {
+                    // Exact match for whole number difficulty
+                    return true;
+                }
+                
+                // For fractional difficulty, check next digit
+                char nextChar = hash[wholeDigits];
+                int value = Convert.ToInt32(nextChar.ToString(), 16);
+                
+                // If next digit is less than our constraint, hash is valid
+                if (value < partialConstraint)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /* -----------------------------------------------
+         * Get a good thread count based on system
+         * --------------------------------------------- */
+        private int GetThreadCount()
+        {
+            if (maxThreads > 0)
+                return maxThreads;
+                
+            // Use processor count but leave one core free for UI/system
+            int processorCount = Environment.ProcessorCount;
+            return Math.Max(1, processorCount - 1);
+        }
+
+        /* -----------------------------------------------
+         * Proof-of-Work: Single-threaded implementation
+         * Kept for comparison and fallback
+         * --------------------------------------------- */
+        public String MineSingleThreaded()
+        {
+            // For timing
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            
+            nonce = 0;
+            long hashesComputed = 0;
+            String hash = CreateHash(nonce);
+            
+            // Keep mining until we find a valid hash
+            while (!IsValidHash(hash))
+            {
+                nonce++;
+                hashesComputed++;
+                hash = CreateHash(nonce);
+            }
+            
+            sw.Stop();
+            
+            // Calculate and store performance metrics
+            ThreadCount = 1;
+            HashesComputed = hashesComputed;
+            HashRate = (double)hashesComputed / sw.Elapsed.TotalSeconds;
+            
+            return hash;
+        }
+
+        /* -----------------------------------------------
+         * Proof-of-Work: Multi-threaded implementation
+         * Uses all available CPU cores to find a valid hash
          * --------------------------------------------- */
         public String Mine()
         {
-            nonce = 0;
-            String hash = CreateHash();
-            String target = new string('0', difficulty);  // e.g. "0000" for difficulty=4
-
-            while (!hash.StartsWith(target))
+            // Main stopwatch for overall performance
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            
+            // Thread coordination
+            int threadCount = GetThreadCount();
+            bool foundValidHash = false;
+            string validHash = "";
+            long validNonce = 0;
+            
+            // For thread-safe counting of total hashes
+            long totalHashes = 0;
+            
+            // Use CancellationToken to stop all threads when solution is found
+            using (var cts = new CancellationTokenSource())
             {
-                nonce++;
-                hash = CreateHash();
+                // Thread-local variables that will be collected at the end
+                ConcurrentBag<long> threadHashCounts = new ConcurrentBag<long>();
+                
+                // Create and start worker threads
+                var tasks = new List<Task>();
+                
+                for (int i = 0; i < threadCount; i++)
+                {
+                    // Each thread gets its own starting nonce range
+                    long startNonce = i * 1000000L;
+                    
+                    tasks.Add(Task.Run(() => 
+                    {
+                        // Thread-local variables
+                        long currentNonce = startNonce;
+                        long hashesTried = 0;
+                        Random rnd = new Random(Thread.CurrentThread.ManagedThreadId); // For more randomized nonce ranges
+                        
+                        // Try to find a valid hash until solution is found or cancelled
+                        while (!foundValidHash && !cts.Token.IsCancellationRequested)
+                        {
+                            string hash = CreateHash(currentNonce);
+                            hashesTried++;
+                            
+                            // Check if this is a valid hash
+                            if (IsValidHash(hash))
+                            {
+                                // Found a solution! 
+                                lock (this) // Ensure only one thread updates the result
+                                {
+                                    if (!foundValidHash) // Double-check in case another thread found a solution
+                                    {
+                                        foundValidHash = true;
+                                        validHash = hash;
+                                        validNonce = currentNonce;
+                                        
+                                        // Tell other threads to stop
+                                        cts.Cancel();
+                                    }
+                                }
+                                break;
+                            }
+                            
+                            // Try next nonce - add some randomness to avoid duplicating work
+                            currentNonce += rnd.Next(1, threadCount * 2);
+                        }
+                        
+                        // Record how many hashes this thread computed
+                        threadHashCounts.Add(hashesTried);
+                    }, cts.Token));
+                }
+                
+                try 
+                {
+                    // Wait for a solution to be found or all tasks to complete
+                    Task.WaitAll(tasks.ToArray());
+                }
+                catch (AggregateException ae)
+                {
+                    // Expected if tasks are canceled - ignore
+                    foreach (var e in ae.InnerExceptions)
+                    {
+                        if (!(e is TaskCanceledException))
+                            throw; // Something unexpected happened
+                    }
+                }
+                
+                // Sum up all hashes tried by all threads
+                totalHashes = threadHashCounts.Sum();
             }
-            return hash;  // valid PoW hash
+            
+            sw.Stop();
+            
+            // Update block with the solution
+            this.nonce = validNonce;
+            
+            // Store mining statistics
+            ThreadCount = threadCount;
+            HashesComputed = totalHashes;
+            HashRate = (double)totalHashes / sw.Elapsed.TotalSeconds;
+            
+            return validHash;
+        }
+
+        // Static method to set max threads to use (0 = auto)
+        public static void SetMaxThreads(int threads)
+        {
+            maxThreads = Math.Max(0, threads);
         }
 
         /* -----------------------------------------------
@@ -163,6 +365,7 @@ namespace BlockchainAssignment
         /* -----------------------------------------------
          * Nice, human-readable representation for UI output,
          * showing PoW status, rewards, and transaction list.
+         * Updated for Tasks 1 & 2 to show mining performance
          * --------------------------------------------- */
         public override string ToString()
         {
@@ -171,7 +374,11 @@ namespace BlockchainAssignment
                 + "\tTimestamp: " + timestamp
                 + "\nPrevious Hash: " + prevHash
                 + "\n-- PoW --"
-                + "\nDifficulty Level: " + difficulty
+                + "\nDifficulty Level: " + difficulty.ToString("F2")
+                + "\nMining Time: " + miningTime.TotalSeconds.ToString("F2") + " seconds"
+                + "\nThreads Used: " + ThreadCount
+                + "\nHashes Computed: " + HashesComputed.ToString("N0") 
+                + "\nHash Rate: " + HashRate.ToString("N0") + " hashes/sec"
                 + "\nNonce: " + nonce
                 + "\nHash: " + hash
                 + "\n-- Rewards --"

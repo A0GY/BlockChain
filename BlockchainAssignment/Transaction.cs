@@ -11,7 +11,7 @@ namespace BlockchainAssignment
     {
         //trans data held
 
-        DateTime timestamp; 			// Time 
+        public DateTime timestamp; 			// Time - made public for sorting in Altruistic mode
         public String senderAddress ,recipientAddress; 		// Participants public key addresses
         public double amount, fee; 		// Quantities transferred
         public String hash, signature; 		// Attributes for verification of validity

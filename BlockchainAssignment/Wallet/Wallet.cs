@@ -8,10 +8,10 @@ using System.IO;
 
 namespace BlockchainAssignment.Wallet
 {
-    // Below is the code for generating key pairs and signatures, and validating signatures and private keys
+    // code for generating key pairs and signatures, and validating signatures and private keys
     class Wallet
     {
-        // Public ID - viewable to all (Derived from the users private key)
+        // Public ID - viewable to all ( from the users private key)
         public String publicID; 
 
         public Wallet(out String privateKey)
